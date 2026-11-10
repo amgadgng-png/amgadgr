@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <!-- [السطر 4] إعدادات الصفحة واللغة -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر المكملات وشي إن</title>
+    
+    <!-- [السطر 9] رابط مكتبة الأيقونات الجاهزة (Font Awesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- [السطر 12 إلى 42] قسم لغة التصميم (CSS) - ألوان وأشكال المتجر -->
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: #121212; color: #fff; padding-bottom: 20px; }
+        
+        /* تنسيق عام للأيقونات */
+        i { margin-left: 5px; }
+
+        /* الشريط العلوي */
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #1e1e1e; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 10; }
+        .nav h1 { font-size: 15px; }
+        .nav button { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 5px 8px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+
+        /* زر السلة */
+        .cart-btn { background: #2ecc71; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 13px; }
+
+        /* شبكة المنتجات */
+        .grid { display: grid; gap: 10px; padding: 15px; }
+        .cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+        /* بطاقة المنتج */
+        .card { background: #1e1e1e; padding: 10px; border-radius: 8px; border: 1px solid #2a2a2a; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .card img { width: 100%; border-radius: 6px; height: 130px; object-fit: cover; }
+        .card h4 { font-size: 13px; margin: 8px 0 4px; }
+        .card p { color: #2ecc71; font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+        .btn { background: #2ecc71; color: #fff; border: none; padding: 8px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; }
+
+        /* نافذة السلة */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
+        .modal-box { background: #1e1e1e; padding: 20px; border-radius: 10px; width: 90%; max-width: 350px; position: relative; }
+        .close { position: absolute; left: 15px; top: 15px; cursor: pointer; font-size: 18px; color: #aaa; }
+        .modal-box ul { list-style: none; margin: 15px 0; max-height: 200px; overflow-y: auto; }
+        .modal-box li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; font-size: 13px; }
+
+        /* أزرار السلة والواتساب */
+        .wa-btn { background: #25D366; color: #fff; border: none; padding: 10px; width: 100%; border-radius: 5px; margin: 10px 0 5px; font-weight: bold; cursor: pointer; }
+        .del-btn { background: #e74c3c; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <!-- [السطر 48 إلى 65] قسم لغة الهيكل (HTML) - الواجهة والأزرار -->
+    <header class="nav">
+        <h1>متجر المكملات وشي إن 🛍️</h1>
+        <div>
+            <!-- أزرار تغيير العرض مع الأيقونات -->
+            <button onclick="setLayout(2)"><i class="fa-solid fa-border-all"></i> 2x2</button>
+            <button onclick="setLayout(4)"><i class="fa-solid fa-table-cells"></i> 4x4</button>
+        </div>
+        <!-- زر السلة مع الأيقونة -->
+        <div onclick="toggleCart()" class="cart-btn"><i class="fa-solid fa-cart-shopping"></i> السلة (<span id="cartCount">0</span>)</div>
+    </header>
+
+    <!-- شبكة عرض المنتجات -->
+    <main id="productsGrid" class="grid cols-2"></main>
+
+    <!-- نافذة السلة المنبثقة -->
+    <div id="cartModal" class="modal">
+        <div class="modal-box">
+            <span class="close" onclick="toggleCart()">✕</span>
+            <h2>عربة التسوق 🛒</h2>
+            <ul id="cartList"></ul>
+            <p style="margin-top:10px;">الإجمالي: <strong id="cartTotal">0</strong> ر.ي</p>
+            <!-- زر الواتساب مع الأيقونة -->
+            <button onclick="sendWA()" class="wa-btn"><i class="fa-brands fa-whatsapp"></i> طلب عبر الواتساب</button>
+            <button onclick="clearCart()" class="del-btn">إفراغ السلة</button>
+        </div>
+    </div>
+
+    <!-- [السطر 76 إلى 125] قسم لغة المحرك والبرمجة (JavaScript) - المنتجات والوظائف -->
+    <script>
+        const products = [
+            { id: 1, name: "Repair Gold (مكمل)", price: 6796, img: "https://via.placeholder.com/150" },
+            { id: 2, name: "Whey Protein (مكمل)", price: 12000, img: "https://via.placeholder.com/150" },
+            { id: 3, name: "فستان أنيق (شي إن)", price: 9500, img: "https://via.placeholder.com/150" },
+            { id: 4, name: "حقيبة نسائية (شي إن)", price: 7200, img: "https://via.placeholder.com/150" }
+        ];
+
+        let cart = [];
+
+        function render() {
+            document.getElementById('productsGrid').innerHTML = products.map(p => `
+                <div class="card">
+                    <img src="${p.img}" alt="${p.name}">
+                    <h4>${p.name}</h4>
+                    <p>${p.price.toLocaleString()} ر.ي</p>
+                    <button class="btn" onclick="addToCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> إضافة للسلة</button>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(id) {
+            let item = cart.find(i => i.id === id);
+            item ? item.qty++ : cart.push({...products.find(p => p.id === id), qty: 1});
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('cartCount').innerText = cart.reduce((s, i) => s + i.qty, 0);
+            document.getElementById('cartList').innerHTML = cart.map(i => `
+                <li>
+                    <span>${i.name} (x${i.qty})</span>
+                    <span>${(i.price * i.qty).toLocaleString()} ر.ي</span>
+                </li>
+            `).join('');
+            document.getElementById('cartTotal').innerText = cart.reduce((s, i) => s + (i.price * i.qty), 0).toLocaleString();
+        }
+
+        function toggleCart() {
+            let m = document.getElementById('cartModal');
+            m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function clearCart() { 
+            cart = []; 
+            updateUI(); 
+        }
+
+        function setLayout(c) { 
+            document.getElementById('productsGrid').className = `grid cols-${c}`; 
+        }
+
+        function sendWA() {
+            if (!cart.length) return alert("السلة فارغة!");
+            let phone = "967700000000"; // اكتب رقم واتساب الخاص بك هنا
+            let msg = "مرحباً، أرغب في طلب المنتجات التالية:\n\n" + 
+                      cart.map(i => `• ${i.name} (الكمية: ${i.qty})`).join('\n') + 
+                      `\n\n💰 الإجمالي الكلي: ${document.getElementById('cartTotal').innerText} ر.ي`;
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
+        }
+
+        render();
+    </script>
+</body>
+</html>
